@@ -1,9 +1,9 @@
 extern crate sdl2;
 
-use sdl2::pixels::Color;
+use sdl2::pixels::{Color, PixelFormatEnum};
 use sdl2::event::Event;
 use sdl2::keyboard::Keycode;
-use sdl2::render::{Canvas, Texture, TextureCreator};
+use sdl2::render::{Canvas, Texture, TextureCreator, TextureAccess};
 use sdl2::rect::Rect;
 use sdl2::video::{Window, WindowContext};
 use std::time::{Duration, SystemTime};
@@ -53,12 +53,16 @@ pub fn main() {
             TEXTURE_SIZE)
         .expect("Failed to create a texture");
 
+    let player = create_player_texture(&mut canvas, &texture_creator)
+        .expect("Failed to create player texture");
+
     //let _image_context = sdl2::image::init(INIT_PNG)
     //    .expect("Couldn't initialize image creator");
     // let image_texture = texture_creator.load_texture("assets/cat.png")
     //    .expect("Couldn't load image");
 
     let timer = SystemTime::now();
+    let mut sdlTimer = sdl_context.timer().unwrap();
 
     let mut event_pump = sdl_context.event_pump().expect("Failed to get SDL event pump");
 
@@ -78,33 +82,39 @@ pub fn main() {
 
         // canvas.copy(&image_texture, None, None).expect("Render image failed");
 
-        let square_texture = match timer.elapsed() {
-            Ok(elapsed) =>
-                if elapsed.as_secs() % 2 == 0  {
-                    &green_square
-                } else {
-                    &blue_square
-                },
-            Err(_) => &blue_square,
-        };
+        // let square_texture = match timer.elapsed() {
+        //     Ok(elapsed) =>
+        //         if elapsed.as_secs() % 2 == 0  {
+        //             &green_square
+        //         } else {
+        //             &blue_square
+        //         },
+        //     Err(_) => &blue_square,
+        // };
+
+        let ticks = sdlTimer.ticks() as i16;
+        let off = ticks / 30 as i16;
 
         // Arena
         canvas.filled_circle(400, 300, 200, Color::RGB(0, 0, 255)).unwrap();
         canvas.filled_circle(400, 300, 180, Color::RGB(0, 0, 0)).unwrap();
         
         // Goal
-        canvas.filled_pie(400, 300, 202, 0, 45, Color::RGB(0, 0, 0)).unwrap();
+        canvas.filled_pie(400, 300, 202, 0 + off, 45 + off, Color::RGB(0, 0, 0)).unwrap();
 
         // Player
-        canvas.filled_pie(400, 300, 160, 10, 30, Color::RGB(0, 255, 0)).unwrap();
-        canvas.filled_pie(400, 300, 155, 9, 31, Color::RGB(0, 0, 0)).unwrap();
+        canvas.filled_pie(400, 300, 160, 10 - off, 30 - off, Color::RGB(0, 255, 0)).unwrap();
+        canvas.filled_pie(400, 300, 155, 9 - off, 31 - off, Color::RGB(0, 0, 0)).unwrap();
         
         // Ball
         canvas.filled_circle(500, 350, 5, Color::RGB(255, 255, 0)).unwrap();
 
+        // canvas.copy(&player, None, None).unwrap();
+        // canvas.copy_ex(&player, None, None, 180.0, None, false, false).unwrap();
+
         canvas.present();
 
-        sleep(Duration::new(0, 1_000_000_000u32 / 60));
+        sleep(Duration::new(0, 1_000_000_000u32 / 120));
     }
 }
 
@@ -131,5 +141,25 @@ fn create_texture_rect<'a>(
             Some(square_texture)
         },
         _ => None,
+    }
+}
+
+
+fn create_player_texture<'a>(
+    canvas: &mut Canvas<Window>,
+    texture_creator: &'a TextureCreator<WindowContext>
+) -> Option<Texture<'a>> {
+    match texture_creator.create_texture_target(PixelFormatEnum::RGBA8888, 1000, 1000) {
+        Ok(mut texture) => {
+            canvas.with_texture_canvas(&mut texture, |texture_canvas| {
+                texture_canvas.set_draw_color(Color::RGBA(0, 0, 0, 100));
+                texture_canvas.clear();
+                texture_canvas.filled_pie(500, 500, 400, 0, 45, Color::RGBA(0, 255, 0, 100)).unwrap();
+                texture_canvas.filled_pie(500, 500, 380, 0, 45, Color::RGBA(255, 0, 0, 100)).unwrap();
+            }).expect("Failed to create player texture");
+
+            Some(texture)
+        },
+        Err(_) => None,
     }
 }
