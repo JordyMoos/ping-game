@@ -22,6 +22,48 @@ enum TextureColor {
 }
 
 
+
+trait ActorComponent {
+    fn update(&mut self);
+}
+
+struct Actor {
+    id: i32,
+    components: Vec<Box<ActorComponent>>,
+}
+
+impl Actor {
+    pub fn update(&mut self) {
+        for component in self.components.iter_mut() {
+            component.update();
+        }
+    }
+}
+
+struct TransformComponent {
+    x: i16,
+    y: i16,
+}
+
+impl ActorComponent for TransformComponent {
+    fn update(&mut self) {
+        self.x = self.x + 1;
+        println!("X = {}", self.x);
+    }
+}
+
+struct PhysicsComponent {
+    acceleration: f32,
+    max_velocity: f32,
+}
+
+impl ActorComponent for PhysicsComponent {
+    fn update(&mut self) {
+        
+    }
+}
+
+
 pub fn main() {
     let sdl_context = sdl2::init().expect("SDL initialization failed");
     let video_subsystem = sdl_context.video().expect("Couldn't get SDL video subsystem");
@@ -60,6 +102,20 @@ pub fn main() {
     //    .expect("Couldn't initialize image creator");
     // let image_texture = texture_creator.load_texture("assets/cat.png")
     //    .expect("Couldn't load image");
+
+    let mut actor = Actor {
+        id: 1,
+        components: vec![
+            Box::new(TransformComponent {
+                x: 100,
+                y: 100,
+            }),
+            Box::new(PhysicsComponent {
+                acceleration: 5.0,
+                max_velocity: 20.0,
+            }),
+        ],
+    };
 
     let timer = SystemTime::now();
     let mut sdlTimer = sdl_context.timer().unwrap();
@@ -111,6 +167,8 @@ pub fn main() {
 
         // canvas.copy(&player, None, None).unwrap();
         // canvas.copy_ex(&player, None, None, 180.0, None, false, false).unwrap();
+
+        actor.update();
 
         canvas.present();
 
