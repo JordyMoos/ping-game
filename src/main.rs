@@ -11,6 +11,7 @@ use std::thread::sleep;
 //use sdl2::image::{LoadTexture, INIT_PNG};
 use sdl2::gfx::primitives::DrawRenderer;
 use std::collections::HashMap;
+use std::rc::Rc;
 use std::cell::RefCell;
 
 
@@ -48,7 +49,7 @@ impl Actor {
 }
 
 struct TransformComponent {
-    actor: RefCell<Actor>,
+    actor: Rc<RefCell<Actor>>,
     x: i16,
     y: i16,
 }
@@ -127,12 +128,12 @@ pub fn main() {
     //     ],
     // };
 
-    let mut actor = RefCell::new(Actor {
+    let mut actor = Rc::new(RefCell::new(Actor {
         id: 1,
         components: HashMap::new(),
-    });
+    }));
     let transformComponent = Box::new(TransformComponent {
-        actor: actor,
+        actor: Rc::clone(&actor),
         x: 100,
         y: 100,
     });
@@ -192,7 +193,7 @@ pub fn main() {
         // canvas.copy(&player, None, None).unwrap();
         // canvas.copy_ex(&player, None, None, 180.0, None, false, false).unwrap();
 
-        // actor.update();
+        actor.borrow_mut().update();
 
         canvas.present();
 
