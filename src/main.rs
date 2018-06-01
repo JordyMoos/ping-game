@@ -11,6 +11,7 @@ use std::thread::sleep;
 //use sdl2::image::{LoadTexture, INIT_PNG};
 use sdl2::gfx::primitives::DrawRenderer;
 use std::collections::HashMap;
+use std::cell::RefCell;
 
 
 const TEXTURE_SIZE: u32 = 32;
@@ -47,6 +48,7 @@ impl Actor {
 }
 
 struct TransformComponent {
+    actor: RefCell<Actor>,
     x: i16,
     y: i16,
 }
@@ -125,17 +127,19 @@ pub fn main() {
     //     ],
     // };
 
-    let mut actor = Actor {
+    let mut actor = RefCell::new(Actor {
         id: 1,
         components: HashMap::new(),
-    };
-    actor.add_component(
-        "Transform",
-        Box::new(TransformComponent {
-            x: 100,
-            y: 100,
-        }
-    ));
+    });
+    let transformComponent = Box::new(TransformComponent {
+        actor: actor,
+        x: 100,
+        y: 100,
+    });
+    // actor.add_component(
+    //     "Transform",
+        
+    // ));
 
     let timer = SystemTime::now();
     let mut sdlTimer = sdl_context.timer().unwrap();
@@ -188,7 +192,7 @@ pub fn main() {
         // canvas.copy(&player, None, None).unwrap();
         // canvas.copy_ex(&player, None, None, 180.0, None, false, false).unwrap();
 
-        actor.update();
+        // actor.update();
 
         canvas.present();
 
