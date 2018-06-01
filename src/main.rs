@@ -56,6 +56,7 @@ struct TransformComponent {
 
 impl ActorComponent for TransformComponent {
     fn update(&mut self) {
+        let actor = self.actor.borrow_mut();
         self.x = self.x + 1;
         println!("X = {}", self.x);
     }
