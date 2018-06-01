@@ -10,6 +10,7 @@ use std::time::{Duration, SystemTime};
 use std::thread::sleep;
 //use sdl2::image::{LoadTexture, INIT_PNG};
 use sdl2::gfx::primitives::DrawRenderer;
+use std::collections::HashMap;
 
 
 const TEXTURE_SIZE: u32 = 32;
@@ -29,19 +30,19 @@ trait ActorComponent {
 
 struct Actor {
     id: i32,
-    components: Vec<Box<ActorComponent>>,
+    components: HashMap<String, Box<ActorComponent>>,
 }
 
 impl Actor {
     pub fn update(&mut self) {
-        for component in self.components.iter_mut() {
+        for (_, component) in self.components.iter_mut() {
             component.update();
         }
     }
 
-    pub fn add_component(&mut self, component: Box<ActorComponent>)
+    pub fn add_component(&mut self, key: &str, component: Box<ActorComponent>)
     {
-        self.components.push(component);
+        self.components.insert(key.to_string(), component);
     }
 }
 
@@ -57,16 +58,16 @@ impl ActorComponent for TransformComponent {
     }
 }
 
-struct PhysicsComponent {
-    acceleration: f32,
-    max_velocity: f32,
-}
+// struct PhysicsComponent {
+//     acceleration: f32,
+//     max_velocity: f32,
+// }
 
-impl ActorComponent for PhysicsComponent {
-    fn update(&mut self) {
+// impl ActorComponent for PhysicsComponent {
+//     fn update(&mut self) {
         
-    }
-}
+//     }
+// }
 
 
 pub fn main() {
@@ -88,16 +89,18 @@ pub fn main() {
     let texture_creator: TextureCreator<_> = canvas.texture_creator();
 
     let green_square = create_texture_rect(
-        &mut canvas,
-        &texture_creator,
-        TextureColor::Green,
-        TEXTURE_SIZE)
+            &mut canvas,
+            &texture_creator,
+            TextureColor::Green,
+            TEXTURE_SIZE
+        )
         .expect("Failed to create a texture");
     let blue_square = create_texture_rect(
             &mut canvas,
             &texture_creator,
             TextureColor::Blue,
-            TEXTURE_SIZE)
+            TEXTURE_SIZE
+        )
         .expect("Failed to create a texture");
 
     let player = create_player_texture(&mut canvas, &texture_creator)
@@ -124,12 +127,15 @@ pub fn main() {
 
     let mut actor = Actor {
         id: 1,
-        components: Vec::new(),
+        components: HashMap::new(),
     };
-    actor.add_component(Box::new(TransformComponent {
-        x: 100,
-        y: 100,
-    }));
+    actor.add_component(
+        "Transform",
+        Box::new(TransformComponent {
+            x: 100,
+            y: 100,
+        }
+    ));
 
     let timer = SystemTime::now();
     let mut sdlTimer = sdl_context.timer().unwrap();
