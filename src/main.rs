@@ -38,6 +38,11 @@ impl Actor {
             component.update();
         }
     }
+
+    pub fn add_component(&mut self, component: Box<ActorComponent>)
+    {
+        self.components.push(component);
+    }
 }
 
 struct TransformComponent {
@@ -103,19 +108,28 @@ pub fn main() {
     // let image_texture = texture_creator.load_texture("assets/cat.png")
     //    .expect("Couldn't load image");
 
+    // let mut actor = Actor {
+    //     id: 1,
+    //     components: vec![
+    //         Box::new(TransformComponent {
+    //             x: 100,
+    //             y: 100,
+    //         }),
+    //         Box::new(PhysicsComponent {
+    //             acceleration: 5.0,
+    //             max_velocity: 20.0,
+    //         }),
+    //     ],
+    // };
+
     let mut actor = Actor {
         id: 1,
-        components: vec![
-            Box::new(TransformComponent {
-                x: 100,
-                y: 100,
-            }),
-            Box::new(PhysicsComponent {
-                acceleration: 5.0,
-                max_velocity: 20.0,
-            }),
-        ],
+        components: Vec::new(),
     };
+    actor.add_component(Box::new(TransformComponent {
+        x: 100,
+        y: 100,
+    }));
 
     let timer = SystemTime::now();
     let mut sdlTimer = sdl_context.timer().unwrap();
@@ -172,7 +186,7 @@ pub fn main() {
 
         canvas.present();
 
-        sleep(Duration::new(0, 1_000_000_000u32 / 120));
+        sleep(Duration::new(0, 1_000_000_000u32 / 5));
     }
 }
 
